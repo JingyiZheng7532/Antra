@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <link rel="stylesheet" href="hw1_style.css" />
+  </head>
+  <body>
+    <div class="signup-container">
+      <h1>Sign Up</h1>
+      <form action="#" method="post">
+        <div class="row">
+          <input type="text" placeholder="First Name" required />
+          <input type="text" placeholder="Last Name" required />
+        </div>
+
+        <div class="row">
+          <input
+            type="tel"
+            placeholder="Mobile No."
+            class="full-width"
+            required
+          />
+        </div>
+
+        <div class="row">
+          <input
+            type="email"
+            placeholder="Email Address"
+            class="full-width"
+            required
+          />
+        </div>
+
+        <div class="agreement-section">
+          <div class="checkbox-group">
+            <input type="checkbox" id="agree" required />
+            <label for="agree">I Agree</label>
+          </div>
+          <p class="terms-text">
+            By clicking <span class="blue-tag">Register</span>, you agree to the
+            <a herf="#"> Terms and Conditions</a> set out by this site,
+            including our Cookie Use.
+          </p>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn-register">Register</button>
+          <button type="button" class="btn-signin">Sign In</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
