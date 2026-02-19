@@ -7,6 +7,18 @@ const data = [
   { title: "Have lunch", id: 3 },
 ];
 
+const Api = (() => {
+  const url = "https://jsonplaceholder.typicode.com/todos";
+
+  const todoPromise = fetch(url).then((res) => {
+    return res.json();
+  });
+
+  return {
+    todoPromise,
+  };
+})();
+
 const View = (() => {
   const dom = {
     container: document.querySelector("#todolist_container"),
@@ -40,6 +52,7 @@ const View = (() => {
 const Model = ((view) => {
   // we need to use the same name as what we return
   const { dom, createTml, render } = view;
+  const { todoPromise } = Api;
 
   class Todos {
     #todoList;
@@ -61,18 +74,24 @@ const Model = ((view) => {
     }
   }
 
-  return { Todos };
+  return {
+    Todos,
+    todoPromise,
+  };
 })(View);
 
 const Controller = ((model, view) => {
-  const { Todos } = model;
+  const { Todos, todoPromise } = model;
   const { dom } = view;
   //   const { dom, createTml, render } = view;
   const todoList = new Todos();
 
   // Initialize the data
   const init = () => {
-    todoList.newList = data;
+    // todoList.newList = data;
+    todoPromise.then((list) => {
+      todoList.newList = list;
+    });
   };
 
   // Add a new todo
