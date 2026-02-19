@@ -8,7 +8,11 @@ const data = [
 ];
 
 const View = (() => {
-  const container = document.querySelector("#todolist_container");
+  const dom = {
+    container: document.querySelector("#todolist_container"),
+    userInput: document.querySelector("#user_input"),
+    btn: document.querySelector("#add-btn"),
+  };
 
   // function to genetate the template string
   const createTml = (dataList) => {
@@ -27,14 +31,15 @@ const View = (() => {
   };
 
   return {
-    container,
+    dom,
     createTml,
     render,
   };
 })();
 
 const Model = ((view) => {
-  const { container, createTml, render } = view;
+  // we need to use the same name as what we return
+  const { dom, createTml, render } = view;
 
   class Todos {
     #todoList;
@@ -48,7 +53,7 @@ const Model = ((view) => {
       // re-render template;
 
       const template = createTml(newTodos);
-      render(container, template);
+      render(dom.container, template);
     }
 
     get getTodos() {
@@ -59,22 +64,37 @@ const Model = ((view) => {
   return { Todos };
 })(View);
 
-const Controller = ((model) => {
+const Controller = ((model, view) => {
   const { Todos } = model;
+  const { dom } = view;
+  //   const { dom, createTml, render } = view;
   const todoList = new Todos();
 
   // Initialize the data
-  todoList.newList = data;
+  const init = () => {
+    todoList.newList = data;
+  };
 
   // Add a new todo
-  const userInput = document.querySelector("#user_input");
-  const btn = document.querySelector("#add-btn");
-  btn.addEventListener("click", () => {
-    const obj = { title: userInput.value, id: todoList.getTodos.length };
-    // update the todo list
-    // why can not use push method to update the list? because we need to trigger the setter method to re-render the template, and push method will not trigger the setter method, so we need to create a new list and assign it to the setter method.
-    const newList = [...todoList.getTodos, obj];
-    todoList.newList = newList;
-    userInput.value = "";
-  });
-})(Model);
+  const addTodo = () => {
+    dom.btn.addEventListener("click", () => {
+      const obj = { title: dom.userInput.value, id: todoList.getTodos.length };
+      // update the todo list
+      // why can not use push method to update the list? because we need to trigger the setter method to re-render the template, and push method will not trigger the setter method, so we need to create a new list and assign it to the setter method.
+      const newList = [...todoList.getTodos, obj];
+      todoList.newList = newList;
+      dom.userInput.value = "";
+    });
+  };
+
+  const bootstrap = () => {
+    init();
+    addTodo();
+  };
+
+  return {
+    bootstrap,
+  };
+})(Model, View);
+
+Controller.bootstrap();
