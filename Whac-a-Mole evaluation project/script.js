@@ -145,6 +145,12 @@ class GameBoardModel {
     this.holeArr[randomId].showUp = true;
     return randomId;
   }
+
+  clearAllMoles() {
+    this.holeArr.forEach((hole) => {
+      hole.showUp = false;
+    });
+  }
 }
 
 class GameBoardController {
@@ -214,17 +220,30 @@ class TimerModel {
 }
 
 class TimerController {
-  constructor(timerModel, timerView, headerModel, headerView) {
+  constructor(
+    timerModel,
+    timerView,
+    headerModel,
+    headerView,
+    gameBoardModel,
+    gameBoardView,
+  ) {
     this.timerModel = timerModel;
     this.timerView = timerView;
 
     this.headerModel = headerModel;
     this.headerView = headerView;
 
+    this.gameBoardModel = gameBoardModel;
+    this.gameBoardView = gameBoardView;
+
     this.timerView.timerRender();
   }
 
   startTimer() {
+    this.gameBoardModel.clearAllMoles();
+    this.gameBoardView.showUpMole();
+
     this.timerModel.isGameBegin = true;
     this.timerModel.currentRemaining = 30;
     this.timerView.timerRender();
@@ -269,6 +288,8 @@ const timerController = new TimerController(
   timerView,
   headerModel,
   headerView,
+  gameBoardModel,
+  gameBoardView,
 );
 const headerController = new HeaderController(
   headerView,
