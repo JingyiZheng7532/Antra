@@ -1,8 +1,17 @@
 class HeaderView {
-  constructor() {
-    this.scoreLine = document.querySelector(".score-line");
+  constructor(headerModel) {
+    this.headerMode = headerModel;
+
+    this.score = document.querySelector(".current-score");
     this.beginBtn = document.querySelector(".begin-btn");
+
+    this.renderScore();
   }
+  renderScore() {
+    console.log(this.headerMode.currentScore);
+    this.score.textContent = this.headerMode.currentScore;
+  }
+
   bindBtnHandler(handler) {
     this.beginBtn.addEventListener("click", handler);
   }
@@ -10,7 +19,17 @@ class HeaderView {
 
 class HeaderModel {
   #currScore;
-  constructor() {}
+  constructor() {
+    this.#currScore = 0;
+  }
+
+  set currentScore(value) {
+    this.#currScore = value;
+  }
+
+  get currentScore() {
+    return this.#currScore;
+  }
 }
 
 class HeaderController {
@@ -129,10 +148,18 @@ class GameBoardModel {
 }
 
 class GameBoardController {
-  constructor(gameBoardModel, gameBoardView, timerModel) {
+  constructor(
+    gameBoardModel,
+    gameBoardView,
+    timerModel,
+    headerModel,
+    headerView,
+  ) {
     this.gameBoardModel = gameBoardModel;
     this.gameBoardView = gameBoardView;
     this.timerModel = timerModel;
+    this.headerModel = headerModel;
+    this.headerView = headerView;
 
     this.initEvents();
   }
@@ -143,7 +170,9 @@ class GameBoardController {
         this.gameBoardModel.hitMole(id);
         this.gameBoardModel.generateOneMole();
         this.gameBoardView.showUpMole();
-        // addScore
+        const newScore = this.headerModel.currentScore + 1;
+        this.headerModel.currentScore = newScore;
+        this.headerView.renderScore();
       }
     });
   }
@@ -185,9 +214,11 @@ class TimerModel {
 }
 
 class TimerController {
-  constructor(timerModel, timerView, headerView) {
+  constructor(timerModel, timerView, headerModel, headerView) {
     this.timerModel = timerModel;
     this.timerView = timerView;
+
+    this.headerModel = headerModel;
     this.headerView = headerView;
 
     this.timerView.timerRender();
@@ -197,6 +228,8 @@ class TimerController {
     this.timerModel.isGameBegin = true;
     this.timerModel.currentRemaining = 30;
     this.timerView.timerRender();
+    this.headerModel.currentScore = 0;
+    this.headerView.renderScore();
     const time = setInterval(() => {
       let currentRemaining = this.timerModel.currentRemaining;
       currentRemaining--;
@@ -211,7 +244,9 @@ class TimerController {
   }
 }
 
-const headerView = new HeaderView();
+const headerModel = new HeaderModel();
+const headerView = new HeaderView(headerModel);
+
 const timerModel = new TimerModel();
 const timerView = new TimerView(timerModel);
 
@@ -221,9 +256,16 @@ const gameBoardController = new GameBoardController(
   gameBoardModel,
   gameBoardView,
   timerModel,
+  headerModel,
+  headerView,
 );
 
-const timerController = new TimerController(timerModel, timerView, headerView);
+const timerController = new TimerController(
+  timerModel,
+  timerView,
+  headerModel,
+  headerView,
+);
 const headerController = new HeaderController(
   headerView,
   timerController,
