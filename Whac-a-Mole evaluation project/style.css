@@ -29,15 +29,22 @@ button {
 }
 
 .game-board div {
-  min-width: 200px;
-  min-height: 200px;
+  width: 200px;
+  height: 200px;
   border: 2px solid brown;
   border-radius: 50%;
   margin: 2px;
+  display: flex;
+  justify-content: center;
+  justify-content: center;
 }
 
 .mole-img {
   display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .hole.active .mole-img {

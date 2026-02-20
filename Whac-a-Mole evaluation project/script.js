@@ -56,12 +56,24 @@ class GameBoardView {
     }
   }
 
+  bindClickMole(handler) {
+    this.boardElement.addEventListener("click", (e) => {
+      const hole = e.target.closest(".hole");
+      if (hole && hole.classList.contains("active")) {
+        const id = parseInt(hole.id);
+        handler(id);
+      }
+    });
+  }
+
   showUpMole() {
     console.log("showUpMole");
     this.holeArr.forEach((element) => {
+      let targetElement = document.getElementById(element.id);
       if (element.showUp) {
-        let targetElement = document.getElementById(element.id);
         targetElement.classList.add("active");
+      } else {
+        targetElement.classList.remove("active");
       }
     });
   }
@@ -98,13 +110,31 @@ class GameBoardModel {
       }
     }, 1000);
   }
+
+  hitMole(id) {
+    if (this.holeArr[id]) {
+      this.holeArr[id].showUp = false;
+    }
+  }
 }
 
 class GameBoardController {
   constructor(gameBoardModel, gameBoardView, timerModel) {
     this.gameBoardModel = gameBoardModel;
     this.gameBoardView = gameBoardView;
-    this.isGameBegin = timerModel.isGameBegin;
+    this.timerModel = timerModel;
+
+    this.initEvents();
+  }
+
+  initEvents() {
+    this.gameBoardView.bindClickMole((id) => {
+      if (this.timerModel.isGameBegin) {
+        this.gameBoardModel.hitMole(id);
+        this.gameBoardView.showUpMole();
+        // addScore
+      }
+    });
   }
 
   moleStart() {
