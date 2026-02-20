@@ -239,6 +239,10 @@ class TimerController {
       if (currentRemaining <= 0) {
         this.timerModel.isGameBegin = false;
         clearInterval(time);
+
+        setTimeout(() => {
+          alert("Time is Over !");
+        }, 100);
       }
     }, 1000);
   }
