@@ -4,41 +4,116 @@ class HeaderView {
     this.beginBtn = document.querySelector(".begin-btn");
   }
   bindBtnHandler(handler) {
-    console.log("bind");
     this.beginBtn.addEventListener("click", handler);
   }
 }
 
-class HeaderMode {
+class HeaderModel {
   #currScore;
   constructor() {}
 }
 
+class HeaderController {
+  constructor(headerView, timerController, gameBoardController) {
+    this.headerView = headerView;
+    this.timerController = timerController;
+    this.gameBoardController = gameBoardController;
+    this.initEvents();
+  }
+
+  initEvents() {
+    this.headerView.bindBtnHandler(() => this.startGame());
+  }
+
+  startGame() {
+    this.timerController.startTimer();
+    this.gameBoardController.moleStart();
+  }
+}
+
 class GameBoardView {
-  constructor(width, height) {
+  constructor(gameBoardModel) {
     this.boardElement = document.querySelector(".game-board");
-    this.width = width;
-    this.height = height;
+    this.width = gameBoardModel.width;
+    this.height = gameBoardModel.height;
+    this.holeArr = gameBoardModel.holeArr;
+
+    this.initRender();
   }
 
   initRender() {
-    let template = "";
     this.boardElement.style["display"] = "grid";
     this.boardElement.style["grid-template-columns"] =
       `repeat(${this.width}, 1fr)`;
     this.boardElement.style["grid-template-rows"] =
       `repeat(${this.height}, 1fr)`;
-    for (let i = 0; i < this.width; i++) {
-      for (let j = 0; j < this.height; j++) {
-        template += "<div>hi</div>";
-      }
+    for (let i = 0; i < this.width * this.height; i++) {
+      let holeElement = document.createElement("div");
+      holeElement.classList.add("hole");
+      holeElement.setAttribute("id", i);
+      holeElement.innerHTML = `<img src="images/mole.jpeg" class="mole-img">`;
+      this.boardElement.appendChild(holeElement);
     }
-    this.boardElement.innerHTML = template;
+  }
+
+  showUpMole() {
+    console.log("showUpMole");
+    this.holeArr.forEach((element) => {
+      if (element.showUp) {
+        let targetElement = document.getElementById(element.id);
+        targetElement.classList.add("active");
+      }
+    });
   }
 }
 
-const gameBoardView = new GameBoardView(4, 3);
-gameBoardView.initRender();
+class GameBoardModel {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    this.holeArr = Array.from(
+      { length: this.width * this.height },
+      (_, index) => ({
+        id: index,
+        showUp: false,
+      }),
+    );
+  }
+  gameBegin(onUpdate) {
+    console.log("gameBegin");
+    const createMoles = setInterval(() => {
+      let randomId = Math.floor(Math.random() * (this.width * this.height));
+      if (this.holeArr.every((h) => h.showUp))
+        return clearInterval(createMoles);
+      while (this.holeArr[randomId].showUp) {
+        randomId = Math.floor(Math.random() * (this.width * this.height));
+      }
+
+      this.holeArr[randomId].showUp = true;
+
+      if (onUpdate) onUpdate();
+
+      if (this.holeArr.filter((item) => item.showUp).length >= 3) {
+        clearInterval(createMoles);
+      }
+    }, 1000);
+  }
+}
+
+class GameBoardController {
+  constructor(gameBoardModel, gameBoardView, timerModel) {
+    this.gameBoardModel = gameBoardModel;
+    this.gameBoardView = gameBoardView;
+    this.isGameBegin = timerModel.isGameBegin;
+  }
+
+  moleStart() {
+    console.log("moleStart");
+    this.gameBoardModel.gameBegin(() => {
+      this.gameBoardView.showUpMole();
+    });
+  }
+}
 
 class TimerView {
   constructor(timerModel) {
@@ -54,8 +129,10 @@ class TimerView {
 
 class TimerModel {
   #currentRemaining;
+  isGameBegin;
   constructor() {
     this.#currentRemaining = 30;
+    this.isGameBegin = false;
   }
   set currentRemaining(value) {
     this.#currentRemaining = value;
@@ -64,16 +141,6 @@ class TimerModel {
   get currentRemaining() {
     return this.#currentRemaining;
   }
-
-  // begin() {
-  //   const time = setInterval(() => {
-  //     this.#currentRemaining--;
-
-  //     if (this.remainingTime <= 0) {
-  //       clearInterval(time);
-  //     }
-  //   }, 1000);
-  // }
 }
 
 class TimerController {
@@ -83,16 +150,10 @@ class TimerController {
     this.headerView = headerView;
 
     this.timerView.timerRender();
-
-    this.initEvents();
   }
 
-  initEvents() {
-    this.headerView.bindBtnHandler(() => this.startGame());
-  }
-
-  startGame() {
-    console.log("start");
+  startTimer() {
+    this.timerModel.isGameBegin = true;
     this.timerModel.currentRemaining = 30;
     this.timerView.timerRender();
     const time = setInterval(() => {
@@ -102,6 +163,7 @@ class TimerController {
       this.timerView.timerRender();
 
       if (currentRemaining <= 0) {
+        this.timerModel.isGameBegin = false;
         clearInterval(time);
       }
     }, 1000);
@@ -111,4 +173,18 @@ class TimerController {
 const headerView = new HeaderView();
 const timerModel = new TimerModel();
 const timerView = new TimerView(timerModel);
+
+const gameBoardModel = new GameBoardModel(4, 3);
+const gameBoardView = new GameBoardView(gameBoardModel);
+const gameBoardController = new GameBoardController(
+  gameBoardModel,
+  gameBoardView,
+  timerModel,
+);
+
 const timerController = new TimerController(timerModel, timerView, headerView);
+const headerController = new HeaderController(
+  headerView,
+  timerController,
+  gameBoardController,
+);
