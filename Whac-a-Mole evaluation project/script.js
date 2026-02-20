@@ -116,6 +116,16 @@ class GameBoardModel {
       this.holeArr[id].showUp = false;
     }
   }
+
+  generateOneMole() {
+    let randomId;
+    do {
+      randomId = Math.floor(Math.random() * (this.width * this.height));
+    } while (this.holeArr[randomId].showUp);
+
+    this.holeArr[randomId].showUp = true;
+    return randomId;
+  }
 }
 
 class GameBoardController {
@@ -131,6 +141,7 @@ class GameBoardController {
     this.gameBoardView.bindClickMole((id) => {
       if (this.timerModel.isGameBegin) {
         this.gameBoardModel.hitMole(id);
+        this.gameBoardModel.generateOneMole();
         this.gameBoardView.showUpMole();
         // addScore
       }
