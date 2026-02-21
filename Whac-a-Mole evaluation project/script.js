@@ -1,73 +1,26 @@
 class HeaderView {
-  constructor(headerModel) {
-    this.headerMode = headerModel;
-
+  constructor() {
     this.score = document.querySelector(".current-score");
     this.beginBtn = document.querySelector(".begin-btn");
-
-    this.renderScore();
   }
-  renderScore() {
-    this.score.textContent = this.headerMode.currentScore;
+  renderScore(currentScore) {
+    this.score.textContent = currentScore;
   }
-
   bindBtnHandler(handler) {
     this.beginBtn.addEventListener("click", handler);
   }
 }
 
-class HeaderModel {
-  #currScore;
-  constructor() {
-    this.#currScore = 0;
-  }
-
-  set currentScore(value) {
-    this.#currScore = value;
-  }
-
-  get currentScore() {
-    return this.#currScore;
-  }
-}
-
-class HeaderController {
-  constructor(headerView, timerController, gameBoardController) {
-    this.headerView = headerView;
-    this.timerController = timerController;
-    this.gameBoardController = gameBoardController;
-    this.initEvents();
-  }
-
-  initEvents() {
-    this.headerView.bindBtnHandler(() => this.startGame());
-  }
-
-  startGame() {
-    this.timerController.startTimer();
-    this.gameBoardController.moleStart();
-  }
-}
-
 class GameBoardView {
-  constructor(gameBoardModel) {
+  constructor() {
     this.boardElement = document.querySelector(".game-board");
-    this.width = gameBoardModel.width;
-    this.height = gameBoardModel.height;
-    this.holeArr = gameBoardModel.holeArr;
-    this.moleTimer = null;
-    this.snakeTimer = null;
-
-    this.initRender();
   }
-
-  initRender() {
+  initRender(width, height) {
     this.boardElement.style["display"] = "grid";
-    this.boardElement.style["grid-template-columns"] =
-      `repeat(${this.width}, 1fr)`;
-    this.boardElement.style["grid-template-rows"] =
-      `repeat(${this.height}, 1fr)`;
-    for (let i = 0; i < this.width * this.height; i++) {
+    this.boardElement.style["grid-template-columns"] = `repeat(${width}, 1fr)`;
+    this.boardElement.style["grid-template-rows"] = `repeat(${height}, 1fr)`;
+    this.boardElement.innerHTML = "";
+    for (let i = 0; i < width * height; i++) {
       let holeElement = document.createElement("div");
       holeElement.classList.add("hole");
       holeElement.setAttribute("id", i);
@@ -75,47 +28,52 @@ class GameBoardView {
       this.boardElement.appendChild(holeElement);
     }
   }
-
   bindClickMole(handler) {
     this.boardElement.addEventListener("click", (e) => {
       const hole = e.target.closest(".hole");
       if (hole && hole.classList.contains("active")) {
-        const id = parseInt(hole.id);
-        handler(id);
+        handler(parseInt(hole.id));
       }
     });
   }
-
-  boardRender() {
-    this.holeArr.forEach((hole) => {
+  boardRender(holeArr) {
+    holeArr.forEach((hole) => {
       let targetElement = document.getElementById(hole.id);
+      if (!targetElement) return;
+      const img = targetElement.querySelector("img");
       if (hole.snakeShowUp) {
-        this.showSnake(targetElement);
+        img.src = "images/snake.jpeg";
+        targetElement.classList.add("active");
       } else if (hole.moleShowUp) {
-        this.showMole(targetElement);
-        targetElement.querySelector("img").src = "images/mole.jpeg";
+        img.src = "images/mole.jpeg";
+        targetElement.classList.add("active");
       } else {
-        this.hideAll(targetElement);
+        targetElement.classList.remove("active");
+        img.src = "images/mole.jpeg";
       }
     });
   }
+}
 
-  showMole(element) {
-    element.classList.add("active");
+class TimerView {
+  constructor() {
+    this.timer = document.querySelector(".current-time");
   }
-
-  showSnake(element) {
-    const img = element.querySelector("img");
-    if (img.src.indexOf("snake.jpeg") === -1) {
-      img.src = "images/snake.jpeg";
-      img.classList.add("mole-img");
-    }
-    element.classList.add("active");
+  timerRender(currentRemaining) {
+    this.timer.textContent = currentRemaining;
   }
+}
 
-  hideAll(element) {
-    element.classList.remove("active");
-    element.querySelector("img").src = "images/mole.jpeg";
+class HeaderModel {
+  constructor() {
+    this.currentScore = 0;
+  }
+}
+
+class TimerModel {
+  constructor() {
+    this.currentRemaining = 30;
+    this.isGameBegin = false;
   }
 }
 
@@ -123,26 +81,25 @@ class GameBoardModel {
   constructor(width, height) {
     this.width = width;
     this.height = height;
-    this.holeArr = Array.from(
-      { length: this.width * this.height },
-      (_, index) => ({
-        id: index,
-        moleShowUp: false,
-        snakeShowUp: false,
-        timer: null,
-        eachSnakeTimer: null,
-      }),
-    );
+    this.holeArr = Array.from({ length: width * height }, (_, i) => ({
+      id: i,
+      moleShowUp: false,
+      snakeShowUp: false,
+      timer: null,
+    }));
+    this.moleTimer = null;
+    this.snakeTimer = null;
   }
+
   gameBegin(onUpdate) {
+    this.clearGameBoard();
     this.moleTimer = setInterval(() => {
-      if (this.holeArr.filter((item) => item.moleShowUp).length < 3) {
+      if (this.holeArr.filter((h) => h.moleShowUp).length < 3) {
         this.generateOneMole(onUpdate);
       }
     }, 1000);
-
     this.snakeTimer = setInterval(() => {
-      if (this.holeArr.filter((item) => item.snakeShowUp).length < 1) {
+      if (this.holeArr.filter((h) => h.snakeShowUp).length < 1) {
         this.generateOneSnake(onUpdate);
       }
     }, 2000);
@@ -151,63 +108,55 @@ class GameBoardModel {
   hideMole(id) {
     if (this.holeArr[id]) {
       this.holeArr[id].moleShowUp = false;
+      if (this.holeArr[id].timer) clearTimeout(this.holeArr[id].timer);
       this.holeArr[id].timer = null;
     }
   }
 
-  hideSnake(id) {
-    if (this.holeArr[id]) {
-      this.holeArr[id].snakeShowUp = false;
-      this.holeArr[id].eachSnakeTimer = null;
-    }
-  }
-
   generateOneMole(onUpdate) {
-    let randomId;
-    do {
-      randomId = Math.floor(Math.random() * (this.width * this.height));
-    } while (this.holeArr[randomId].moleShowUp);
-    this.holeArr[randomId].moleShowUp = true;
+    const id = Math.floor(Math.random() * this.holeArr.length);
+    const hole = this.holeArr[id];
 
-    if (onUpdate) onUpdate();
+    if (hole.timer) clearTimeout(hole.timer);
 
-    this.holeArr[randomId].timer = setTimeout(() => {
-      this.hideMole(randomId);
+    hole.moleShowUp = true;
+    hole.snakeShowUp = false;
+
+    onUpdate();
+
+    hole.timer = setTimeout(() => {
+      this.hideMole(id);
+      onUpdate();
     }, 2000);
   }
 
   generateOneSnake(onUpdate) {
-    let randomSnakeId;
-    do {
-      randomSnakeId = Math.floor(Math.random() * (this.width * this.height));
-    } while (this.holeArr[randomSnakeId].snakeShowUp);
-    this.holeArr[randomSnakeId].snakeShowUp = true;
+    const id = Math.floor(Math.random() * this.holeArr.length);
+    const hole = this.holeArr[id];
 
-    if (onUpdate) onUpdate();
+    if (hole.timer) clearTimeout(hole.timer);
 
-    this.holeArr[randomSnakeId].eachSnakeTimer = setTimeout(() => {
-      this.hideSnake(randomSnakeId);
+    hole.snakeShowUp = true;
+    hole.moleShowUp = false;
+
+    onUpdate();
+
+    hole.timer = setTimeout(() => {
+      if (this.moleTimer) {
+        hole.snakeShowUp = false;
+        hole.timer = null;
+        onUpdate();
+      }
     }, 2000);
   }
 
   generateAllSnake(onUpdate) {
-    this.holeArr.forEach((item) => {
-      item.snakeShowUp = true;
-      item.timer = null;
-      item.eachSnakeTimer = null;
+    this.holeArr.forEach((h) => {
+      if (h.timer) clearTimeout(h.timer);
+      h.moleShowUp = false;
+      h.snakeShowUp = true;
     });
-    if (onUpdate) {
-      onUpdate();
-    }
-  }
-
-  clearAllMolesAndSnakes() {
-    this.holeArr.forEach((hole) => {
-      hole.moleShowUp = false;
-      hole.snakeShowUp = false;
-      hole.timer = null;
-      hole.snakeTimer = null;
-    });
+    if (onUpdate) onUpdate();
   }
 
   clearGameBoard() {
@@ -215,171 +164,147 @@ class GameBoardModel {
     this.moleTimer = null;
     clearInterval(this.snakeTimer);
     this.snakeTimer = null;
-    this.clearAllMolesAndSnakes();
+    this.holeArr.forEach((h) => {
+      h.moleShowUp = false;
+      h.snakeShowUp = false;
+      if (h.timer) clearTimeout(h.timer);
+      h.timer = null;
+    });
+  }
+}
+
+class HeaderController {
+  constructor(view, model) {
+    this.view = view;
+    this.model = model;
+    this.onStartBtnClick = null;
+    this.view.bindBtnHandler(() => {
+      if (this.onStartBtnClick) this.onStartBtnClick();
+    });
+  }
+  updateScore(newScore) {
+    this.model.currentScore = newScore;
+    this.view.renderScore(newScore);
   }
 }
 
 class GameBoardController {
-  constructor(
-    gameBoardModel,
-    gameBoardView,
-    timerModel,
-    timerController,
-    headerModel,
-    headerView,
-  ) {
-    this.gameBoardModel = gameBoardModel;
-    this.gameBoardView = gameBoardView;
+  constructor(model, view, timerModel) {
+    this.model = model;
+    this.view = view;
     this.timerModel = timerModel;
-    this.timerController = timerController;
-    this.headerModel = headerModel;
-    this.headerView = headerView;
-
+    this.onScoreGain = null;
+    this.onHitSnake = null;
+    this.view.initRender(this.model.width, this.model.height);
     this.initEvents();
   }
-
   initEvents() {
-    this.gameBoardView.bindClickMole((id) => {
+    this.view.bindClickMole((id) => {
       if (this.timerModel.isGameBegin) {
-        if (this.gameBoardModel.holeArr[id].snakeShowUp) {
-          this.gameBoardModel.generateAllSnake();
-          setTimeout(() => {
-            this.timerController.closeTimer();
-          }, 1000);
-        } else if (this.gameBoardModel.holeArr[id].moleShowUp) {
-          this.gameBoardModel.hideMole(id);
-          this.gameBoardView.boardRender();
-          const newScore = this.headerModel.currentScore + 1;
-          this.headerModel.currentScore = newScore;
-          this.headerView.renderScore();
+        const hole = this.model.holeArr[id];
+        if (hole.snakeShowUp) {
+          if (this.onHitSnake) this.onHitSnake();
+        } else if (hole.moleShowUp) {
+          this.model.hideMole(id);
+          this.view.boardRender(this.model.holeArr);
+          if (this.onScoreGain) this.onScoreGain();
         }
       }
     });
   }
-
   moleStart() {
-    this.gameBoardModel.gameBegin(() => {
-      this.gameBoardView.boardRender();
+    this.model.gameBegin(() => {
+      this.view.boardRender(this.model.holeArr);
     });
   }
 }
 
-class TimerView {
-  constructor(timerModel) {
-    this.timerModel = timerModel;
-    this.timer = document.querySelector(".current-time");
-  }
-
-  timerRender() {
-    const currentTime = this.timerModel.currentRemaining;
-    this.timer.textContent = currentTime;
-  }
-}
-
-class TimerModel {
-  #currentRemaining;
-  isGameBegin;
-  constructor() {
-    this.#currentRemaining = 30;
-    this.isGameBegin = false;
-  }
-  set currentRemaining(value) {
-    this.#currentRemaining = value;
-  }
-
-  get currentRemaining() {
-    return this.#currentRemaining;
-  }
-}
-
 class TimerController {
-  constructor(
-    timerModel,
-    timerView,
-    headerModel,
-    headerView,
-    gameBoardModel,
-    gameBoardView,
-  ) {
-    this.timerModel = timerModel;
-    this.timerView = timerView;
-
-    this.headerModel = headerModel;
-    this.headerView = headerView;
-
-    this.gameBoardModel = gameBoardModel;
-    this.gameBoardView = gameBoardView;
-
+  constructor(model, view) {
+    this.model = model;
+    this.view = view;
+    this.onTimeUp = null;
     this.gameTimer = null;
-
-    this.timerView.timerRender();
   }
-
   startTimer() {
-    this.timerModel.isGameBegin = true;
-    this.timerModel.currentRemaining = 30;
-    this.timerView.timerRender();
-    this.headerModel.currentScore = 0;
-    this.headerView.renderScore();
+    this.stopTimer();
+    this.model.isGameBegin = true;
+    this.model.currentRemaining = 30;
+    this.view.timerRender(this.model.currentRemaining);
     this.gameTimer = setInterval(() => {
-      let currentRemaining = this.timerModel.currentRemaining;
-      currentRemaining--;
-      this.timerModel.currentRemaining = currentRemaining;
-      this.timerView.timerRender();
-
-      if (currentRemaining <= 0) {
-        this.closeTimer();
+      this.model.currentRemaining--;
+      this.view.timerRender(this.model.currentRemaining);
+      if (this.model.currentRemaining <= 0) {
+        this.stopTimer();
+        if (this.onTimeUp) this.onTimeUp();
       }
     }, 1000);
   }
-
-  closeTimer() {
-    this.timerModel.isGameBegin = false;
+  stopTimer() {
+    this.model.isGameBegin = false;
     if (this.gameTimer) {
       clearInterval(this.gameTimer);
       this.gameTimer = null;
     }
-
-    setTimeout(() => {
-      alert("Time is Over !");
-      this.gameBoardModel.clearGameBoard();
-      this.gameBoardView.boardRender();
-      this.timerModel.currentRemaining = 30;
-      this.timerView.timerRender();
-      this.headerModel.currentScore = 0;
-      this.headerView.renderScore();
-    }, 500);
   }
 }
 
-const headerModel = new HeaderModel();
-const headerView = new HeaderView(headerModel);
+class MainController {
+  constructor() {
+    this.headerModel = new HeaderModel();
+    this.timerModel = new TimerModel();
+    this.gameBoardModel = new GameBoardModel(4, 3);
 
-const timerModel = new TimerModel();
-const timerView = new TimerView(timerModel);
+    this.headerView = new HeaderView();
+    this.timerView = new TimerView();
+    this.gameBoardView = new GameBoardView();
 
-const gameBoardModel = new GameBoardModel(4, 3);
-const gameBoardView = new GameBoardView(gameBoardModel);
+    this.headerController = new HeaderController(
+      this.headerView,
+      this.headerModel,
+    );
+    this.timerController = new TimerController(this.timerModel, this.timerView);
+    this.gameBoardController = new GameBoardController(
+      this.gameBoardModel,
+      this.gameBoardView,
+      this.timerModel,
+    );
 
-const timerController = new TimerController(
-  timerModel,
-  timerView,
-  headerModel,
-  headerView,
-  gameBoardModel,
-  gameBoardView,
-);
+    this.setupInteractions();
+  }
 
-const gameBoardController = new GameBoardController(
-  gameBoardModel,
-  gameBoardView,
-  timerModel,
-  timerController,
-  headerModel,
-  headerView,
-);
-const headerController = new HeaderController(
-  headerView,
-  timerController,
-  gameBoardController,
-);
+  setupInteractions() {
+    this.headerController.onStartBtnClick = () => {
+      this.gameBoardModel.clearGameBoard();
+      this.gameBoardView.boardRender(this.gameBoardModel.holeArr);
+
+      this.headerController.updateScore(0);
+      this.timerController.startTimer();
+      this.gameBoardController.moleStart();
+    };
+
+    this.gameBoardController.onScoreGain = () => {
+      this.headerController.updateScore(this.headerModel.currentScore + 1);
+    };
+
+    this.gameBoardController.onHitSnake = () => {
+      this.timerController.stopTimer();
+      this.gameBoardModel.clearGameBoard();
+
+      this.gameBoardModel.generateAllSnake(() => {
+        this.gameBoardView.boardRender(this.gameBoardModel.holeArr);
+      });
+    };
+
+    this.timerController.onTimeUp = () => {
+      this.gameBoardModel.clearGameBoard();
+      this.gameBoardView.boardRender(this.gameBoardModel.holeArr);
+
+      setTimeout(() => {
+        alert("Time is Over !");
+      }, 100);
+    };
+  }
+}
+
+const app = new MainController();
