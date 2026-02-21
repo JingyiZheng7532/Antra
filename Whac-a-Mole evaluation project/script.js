@@ -8,7 +8,6 @@ class HeaderView {
     this.renderScore();
   }
   renderScore() {
-    console.log(this.headerMode.currentScore);
     this.score.textContent = this.headerMode.currentScore;
   }
 
@@ -56,7 +55,8 @@ class GameBoardView {
     this.width = gameBoardModel.width;
     this.height = gameBoardModel.height;
     this.holeArr = gameBoardModel.holeArr;
-    this.gameTimer = null;
+    this.moleTimer = null;
+    this.snakeTimer = null;
 
     this.initRender();
   }
@@ -86,26 +86,36 @@ class GameBoardView {
     });
   }
 
-  showUpMole() {
-    console.log("showUpMole");
-    this.holeArr.forEach((element) => {
-      let targetElement = document.getElementById(element.id);
-      if (element.showUp) {
-        targetElement.classList.add("active");
+  boardRender() {
+    this.holeArr.forEach((hole) => {
+      let targetElement = document.getElementById(hole.id);
+      if (hole.snakeShowUp) {
+        this.showSnake(targetElement);
+      } else if (hole.moleShowUp) {
+        this.showMole(targetElement);
+        targetElement.querySelector("img").src = "images/mole.jpeg";
       } else {
-        targetElement.classList.remove("active");
+        this.hideAll(targetElement);
       }
     });
   }
 
-  showSnake(element) {
-    element.innerHTML = `<img src="images/snake.jpeg" class="snake-img">`;
+  showMole(element) {
     element.classList.add("active");
   }
 
-  hideSnake(element) {
-    element.innderHTML = `<img src="images/mole.jpeg" class="mole-img">`;
+  showSnake(element) {
+    const img = element.querySelector("img");
+    if (img.src.indexOf("snake.jpeg") === -1) {
+      img.src = "images/snake.jpeg";
+      img.classList.add("mole-img");
+    }
+    element.classList.add("active");
+  }
+
+  hideAll(element) {
     element.classList.remove("active");
+    element.querySelector("img").src = "images/mole.jpeg";
   }
 }
 
@@ -117,24 +127,38 @@ class GameBoardModel {
       { length: this.width * this.height },
       (_, index) => ({
         id: index,
-        showUp: false,
+        moleShowUp: false,
+        snakeShowUp: false,
         timer: null,
+        eachSnakeTimer: null,
       }),
     );
   }
   gameBegin(onUpdate) {
-    console.log("gameBegin");
-    this.gameTimer = setInterval(() => {
-      if (this.holeArr.filter((item) => item.showUp).length < 3) {
+    this.moleTimer = setInterval(() => {
+      if (this.holeArr.filter((item) => item.moleShowUp).length < 3) {
         this.generateOneMole(onUpdate);
       }
     }, 1000);
+
+    this.snakeTimer = setInterval(() => {
+      if (this.holeArr.filter((item) => item.snakeShowUp).length < 1) {
+        this.generateOneSnake(onUpdate);
+      }
+    }, 2000);
   }
 
   hideMole(id) {
     if (this.holeArr[id]) {
-      this.holeArr[id].showUp = false;
+      this.holeArr[id].moleShowUp = false;
       this.holeArr[id].timer = null;
+    }
+  }
+
+  hideSnake(id) {
+    if (this.holeArr[id]) {
+      this.holeArr[id].snakeShowUp = false;
+      this.holeArr[id].eachSnakeTimer = null;
     }
   }
 
@@ -142,8 +166,8 @@ class GameBoardModel {
     let randomId;
     do {
       randomId = Math.floor(Math.random() * (this.width * this.height));
-    } while (this.holeArr[randomId].showUp);
-    this.holeArr[randomId].showUp = true;
+    } while (this.holeArr[randomId].moleShowUp);
+    this.holeArr[randomId].moleShowUp = true;
 
     if (onUpdate) onUpdate();
 
@@ -152,17 +176,46 @@ class GameBoardModel {
     }, 2000);
   }
 
-  clearAllMoles() {
+  generateOneSnake(onUpdate) {
+    let randomSnakeId;
+    do {
+      randomSnakeId = Math.floor(Math.random() * (this.width * this.height));
+    } while (this.holeArr[randomSnakeId].snakeShowUp);
+    this.holeArr[randomSnakeId].snakeShowUp = true;
+
+    if (onUpdate) onUpdate();
+
+    this.holeArr[randomSnakeId].eachSnakeTimer = setTimeout(() => {
+      this.hideSnake(randomSnakeId);
+    }, 2000);
+  }
+
+  generateAllSnake(onUpdate) {
+    this.holeArr.forEach((item) => {
+      item.snakeShowUp = true;
+      item.timer = null;
+      item.eachSnakeTimer = null;
+    });
+    if (onUpdate) {
+      onUpdate();
+    }
+  }
+
+  clearAllMolesAndSnakes() {
     this.holeArr.forEach((hole) => {
-      hole.showUp = false;
+      hole.moleShowUp = false;
+      hole.snakeShowUp = false;
       hole.timer = null;
+      hole.snakeTimer = null;
     });
   }
 
   clearGameBoard() {
-    clearInterval(this.gameTimer);
-    this.gameTimer = null;
-    this.clearAllMoles();
+    clearInterval(this.moleTimer);
+    this.moleTimer = null;
+    clearInterval(this.snakeTimer);
+    this.snakeTimer = null;
+    this.clearAllMolesAndSnakes();
   }
 }
 
@@ -171,12 +224,14 @@ class GameBoardController {
     gameBoardModel,
     gameBoardView,
     timerModel,
+    timerController,
     headerModel,
     headerView,
   ) {
     this.gameBoardModel = gameBoardModel;
     this.gameBoardView = gameBoardView;
     this.timerModel = timerModel;
+    this.timerController = timerController;
     this.headerModel = headerModel;
     this.headerView = headerView;
 
@@ -186,20 +241,26 @@ class GameBoardController {
   initEvents() {
     this.gameBoardView.bindClickMole((id) => {
       if (this.timerModel.isGameBegin) {
-        this.gameBoardModel.hideMole(id);
-        this.gameBoardModel.generateOneMole();
-        this.gameBoardView.showUpMole();
-        const newScore = this.headerModel.currentScore + 1;
-        this.headerModel.currentScore = newScore;
-        this.headerView.renderScore();
+        if (this.gameBoardModel.holeArr[id].snakeShowUp) {
+          this.gameBoardModel.generateAllSnake();
+          setTimeout(() => {
+            this.timerController.closeTimer();
+          }, 1000);
+        } else if (this.gameBoardModel.holeArr[id].moleShowUp) {
+          this.gameBoardModel.hideMole(id);
+          this.gameBoardModel.generateOneMole();
+          this.gameBoardView.boardRender();
+          const newScore = this.headerModel.currentScore + 1;
+          this.headerModel.currentScore = newScore;
+          this.headerView.renderScore();
+        }
       }
     });
   }
 
   moleStart() {
-    console.log("moleStart");
     this.gameBoardModel.gameBegin(() => {
-      this.gameBoardView.showUpMole();
+      this.gameBoardView.boardRender();
     });
   }
 }
@@ -250,6 +311,8 @@ class TimerController {
     this.gameBoardModel = gameBoardModel;
     this.gameBoardView = gameBoardView;
 
+    this.gameTimer = null;
+
     this.timerView.timerRender();
   }
 
@@ -259,21 +322,34 @@ class TimerController {
     this.timerView.timerRender();
     this.headerModel.currentScore = 0;
     this.headerView.renderScore();
-    const time = setInterval(() => {
+    this.gameTimer = setInterval(() => {
       let currentRemaining = this.timerModel.currentRemaining;
       currentRemaining--;
       this.timerModel.currentRemaining = currentRemaining;
       this.timerView.timerRender();
 
       if (currentRemaining <= 0) {
-        this.timerModel.isGameBegin = false;
-        clearInterval(time);
-
-        alert("Time is Over !");
-        this.gameBoardModel.clearGameBoard();
-        this.gameBoardView.showUpMole();
+        this.closeTimer();
       }
     }, 1000);
+  }
+
+  closeTimer() {
+    this.timerModel.isGameBegin = false;
+    if (this.gameTimer) {
+      clearInterval(this.gameTimer);
+      this.gameTimer = null;
+    }
+
+    setTimeout(() => {
+      alert("Time is Over !");
+      this.gameBoardModel.clearGameBoard();
+      this.gameBoardView.boardRender();
+      this.timerModel.currentRemaining = 30;
+      this.timerView.timerRender();
+      this.headerModel.currentScore = 0;
+      this.headerView.renderScore();
+    }, 500);
   }
 }
 
@@ -285,13 +361,6 @@ const timerView = new TimerView(timerModel);
 
 const gameBoardModel = new GameBoardModel(4, 3);
 const gameBoardView = new GameBoardView(gameBoardModel);
-const gameBoardController = new GameBoardController(
-  gameBoardModel,
-  gameBoardView,
-  timerModel,
-  headerModel,
-  headerView,
-);
 
 const timerController = new TimerController(
   timerModel,
@@ -300,6 +369,15 @@ const timerController = new TimerController(
   headerView,
   gameBoardModel,
   gameBoardView,
+);
+
+const gameBoardController = new GameBoardController(
+  gameBoardModel,
+  gameBoardView,
+  timerModel,
+  timerController,
+  headerModel,
+  headerView,
 );
 const headerController = new HeaderController(
   headerView,
