@@ -248,7 +248,6 @@ class GameBoardController {
           }, 1000);
         } else if (this.gameBoardModel.holeArr[id].moleShowUp) {
           this.gameBoardModel.hideMole(id);
-          this.gameBoardModel.generateOneMole();
           this.gameBoardView.boardRender();
           const newScore = this.headerModel.currentScore + 1;
           this.headerModel.currentScore = newScore;
