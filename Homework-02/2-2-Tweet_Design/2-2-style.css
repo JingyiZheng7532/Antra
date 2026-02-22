@@ -1,0 +1,75 @@
+body {
+  font-family: sans-serif;
+  font-size: 15px;
+}
+
+.tweet {
+  background-color: #fff;
+  border-color: #cfd9de;
+  border-style: solid;
+  border-width: 4px;
+  border-radius: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+}
+
+.thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover; /* Maintains aspect ratio without stretching the image */
+}
+
+.container {
+  flex: 1;
+  min-width: 0;
+}
+
+.firstline {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.name {
+  color: #000;
+  font-weight: bold;
+}
+
+.metadata {
+  color: #71767b;
+}
+
+.message {
+  color: #0f1419;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.actionrow {
+  display: flex;
+  justify-content: space-between;
+  max-width: 425px;
+  color: #536471;
+}
+
+.actionrow span {
+  gap: 4px;
+  color: #71767b;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.name,
+.metadata {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
