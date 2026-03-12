@@ -1,0 +1,7 @@
+<select [(ngModel)]="selectedType">
+  <option [value]="'oneway'">One-way flight</option>
+  <option [value]="'return'">Return flight</option>
+</select>
+
+<app-oneway *ngIf="selectedType === 'oneway'"></app-oneway>
+<app-return *ngIf="selectedType === 'return'"></app-return>
