@@ -7,8 +7,10 @@ export interface ResultInfo {
   films: string[];
 }
 
-export interface FilmResponse {
+export interface filmItem {
+  episode_id: number;
   title: string;
+  release_date: string;
 }
 
 export interface SearchNameResponse {
@@ -21,8 +23,8 @@ export interface SearchNameResponse {
 export class FilmService {
   constructor(private http: HttpClient) {}
 
-  getFilmNames(filmUrl: string): Observable<string> {
-    return this.http.get<FilmResponse>(filmUrl).pipe(map((res: FilmResponse) => res.title));
+  getFilmNames(filmUrl: string): Observable<filmItem> {
+    return this.http.get<filmItem>(filmUrl);
   }
 
   searchByName(name: string): Observable<string> {

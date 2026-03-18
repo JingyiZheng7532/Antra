@@ -6,6 +6,9 @@
 <input [formControl]="searchName" />
 <button (click)="search()">Submit</button>
 
-<div *ngIf="titleList.size">
-  <p *ngFor="let title of titleList">{{ title }}</p>
+<div *ngIf="filmList.length">
+  <div *ngFor="let film of filmList">
+    <p>name: {{ film.title }}</p>
+    <p>year: {{ film.release_date }}</p>
+  </div>
 </div>
