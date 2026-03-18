@@ -1,0 +1,11 @@
+<p>Input the user name here</p>
+<p>And the related film names will be displayed below:</p>
+
+<label>Please input the name here: </label>
+<!-- use "Luke Skywalker" for test -->
+<input [formControl]="searchName" />
+<button (click)="search()">Submit</button>
+
+<div *ngIf="titleList.size">
+  <p *ngFor="let title of titleList">{{ title }}</p>
+</div>
