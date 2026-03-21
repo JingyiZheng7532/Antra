@@ -1,0 +1,17 @@
+<!-- <ng-content select="#buttons"></ng-content>
+
+<ng-content select=".view"></ng-content> -->
+<div class="tab-header">
+  <button
+    *ngFor="let tab of tabList"
+    [ngClass]="{ 'btn-active': tab.active, btn: !tab.active }"
+    [disabled]="tab.active"
+    (click)="selectTab(tab)"
+  >
+    {{ tab.title }}
+  </button>
+</div>
+
+<div class="view">
+  <ng-content></ng-content>
+</div>

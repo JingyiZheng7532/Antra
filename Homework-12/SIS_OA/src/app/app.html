@@ -1,0 +1,25 @@
+<!-- <app-tab-group>
+  <div id="buttons">
+    <ng-container *ngIf="tabList.length">
+      <button
+        *ngFor="let tab of tabList"
+        [disabled]="tab.isSelected"
+        [ngClass]="{ 'btn-active': !tab.isSelected, btn: tab.isSelected }"
+        (click)="selectTab(tab)"
+      >
+        {{ tab.title }}
+      </button>
+    </ng-container>
+  </div>
+  <div class="view">
+    <app-tab title="Section title 1">Content of section 1</app-tab>
+    <app-tab title="Section title 2">Content of section 2</app-tab>
+    <app-tab title="Section title 3">Content of section 3</app-tab>
+  </div>
+</app-tab-group> -->
+
+<app-tab-group>
+  <app-tab title="Section Title 1">Content of section 1</app-tab>
+  <app-tab title="Section Title 2">Content of section 2</app-tab>
+  <app-tab title="Section TItle 3">Content of section 3</app-tab>
+</app-tab-group>
