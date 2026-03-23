@@ -1,0 +1,37 @@
+.board {
+  background-color: cornsilk;
+  width: 400px;
+  padding: 12px;
+}
+
+.board H2 {
+  color: chocolate;
+}
+
+.jobItem {
+  background-color: white;
+  border: 1px solid gainsboro;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  padding: 0 12px 20px 12px;
+}
+
+.jobItem h4 {
+  margin-bottom: 8px;
+}
+
+button {
+  background-color: orange !important;
+  border: 0px;
+  border-radius: 4px;
+  padding: 8px;
+  color: white;
+  width: 150px;
+  height: 35px;
+  font-size: 14px;
+  margin: 8px 0 8px 0;
+}
+
+a {
+  color: black;
+}

@@ -1,0 +1,20 @@
+<div class="board">
+  <H2>Hacker News Job Board</H2>
+
+  <ng-container *ngFor="let job of jobList">
+    <div *ngIf="job.display" class="jobItem">
+      <h4>
+        <ng-container *ngIf="job.url; else noUrl">
+          <a [href]="job.url">{{ job.title }}</a>
+        </ng-container>
+        <ng-template #noUrl>{{ job.title }}</ng-template>
+      </h4>
+      <span>By {{ job.by }} ·</span>
+      <span>{{ job.time | date: 'yyyy/MM/dd HH:mm' }}</span>
+    </div>
+  </ng-container>
+
+  <button *ngIf="hasBeenDisplayed.size < jobList.length" (click)="loadMore()">
+    Load more jobs
+  </button>
+</div>
