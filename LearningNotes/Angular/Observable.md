@@ -117,7 +117,7 @@ dataStream = new Observable<number> ((observer) => {
   * fromEvent: monitor a specific user event
 * Join creation operators
   * combineLatest:  take an array of observable or an object of mutiple observable as input, return a new Observable that emits an Array (or Object) of the latest values from every input stream
-  * forkjoin: can accept mutiple observable, and wait for all of them complete, and return an observable which emits an array of latest value emitted by passed observable;
+  * forkjoin: can accept mutiple observable as an array, and wait for all of them complete, and return an observable which emits an array of latest value emitted by passed observable; only emit once;
 * Transformation operators
   * map: pass in a project function, which will be applyed to every emitted value from the source observable
   * switchMap: pass in a project fn as map, apply it to every emitted value. The difference is it will unsubscribe from the previous observable as soon as a new emitted value coming.

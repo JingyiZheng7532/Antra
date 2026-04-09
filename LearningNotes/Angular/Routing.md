@@ -25,6 +25,8 @@
   ];
   ```
 
+  * Order matters because Router uses a "First Match Wins" strategy
+
 * In order to set the route config, after define routes, we also need to register it into the module. Determine which initialization method to use based on the module's level.
 
   * AppModule: *RouterModule.forRoot(routes)*
@@ -142,3 +144,5 @@ From a navigation, what happen:
 * It is a service implemented through a function(ResolverFn type) to  allow route to fetch needed data before navigating to the next page
 
 #### Lazy loading
+
+* use loadChildren
