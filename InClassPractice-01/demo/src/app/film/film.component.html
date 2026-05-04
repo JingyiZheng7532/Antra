@@ -1,0 +1,10 @@
+<p>film works!</p>
+
+<input type="text" [(ngModel)]="name" placeholder="Enter film name" />
+<button (click)="getfilms()">Get Films</button>
+
+<ul *ngIf="films">
+  <li *ngFor="let film of films">
+    <p>{{ film.title }} ({{ film.year }})</p>
+  </li>
+</ul>
